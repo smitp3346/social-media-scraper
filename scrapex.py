@@ -4,8 +4,29 @@ import requests
 from bs4 import BeautifulSoup
 import re
 
-# --- Page Setup ---
+# --- Page Setup & Professional UI ---
 st.set_page_config(page_title="ScrapeX | Universal Analyzer", page_icon="🚀", layout="centered")
+
+# Custom CSS for Premium Look (Hiding Streamlit branding & styling button)
+hide_st_style = """
+            <style>
+            #MainMenu {visibility: hidden;}
+            footer {visibility: hidden;}
+            header {visibility: hidden;}
+            
+            /* Button Hover Effect */
+            div.stButton > button:first-child {
+                border-radius: 8px;
+                font-weight: bold;
+                transition: all 0.3s ease-in-out;
+            }
+            div.stButton > button:first-child:hover {
+                transform: scale(1.02);
+                box-shadow: 0px 4px 15px rgba(255, 75, 75, 0.4);
+            }
+            </style>
+            """
+st.markdown(hide_st_style, unsafe_allow_html=True)
 
 st.title("🚀 ScrapeX: Universal Link Analyzer")
 st.markdown("**Supports:** YouTube Videos, Instagram Reels, Facebook Videos & Insta Photos")
@@ -37,7 +58,7 @@ def scrape_photo_post(url):
     except Exception:
         return None
 
-# --- ENGINE 1: REELS/VIDEOS (With Comments Fix) ---
+# --- ENGINE 1: REELS/VIDEOS (With FB & Comments Fix) ---
 def scrape_video_link(url):
     ydl_opts = {'quiet': True, 'extract_flat': False, 'skip_download': True, 'no_warnings': True}
     try:
@@ -48,7 +69,7 @@ def scrape_video_link(url):
             raw_title = info.get('title', 'No Title')
             views = info.get('view_count', 'Hidden')
             likes = info.get('like_count', 'Hidden')
-            comments = info.get('comment_count', 'Hidden') # 👈 Yahan comments add kiya
+            comments = info.get('comment_count', 'Hidden')
 
             # --- SMART FACEBOOK FIX ---
             if platform == 'Facebook' and '|' in raw_title and 'views' in raw_title.lower():
@@ -72,7 +93,7 @@ def scrape_video_link(url):
                 "Title": raw_title[:80],
                 "Views": views,
                 "Likes": likes,
-                "Comments": comments # 👈 Return data mein bheja
+                "Comments": comments
             }
     except Exception as e:
         error_msg = str(e)
@@ -102,14 +123,17 @@ if analyze_btn:
                 
                 if photo_result:
                     st.success("✅ Photo Data Successfully Extracted!")
-                    st.json(photo_result)
+                    st.divider() # Sleek visual line
+                    # Professional Dropdown Expander for JSON
+                    with st.expander("📂 View Raw Extracted Data"):
+                        st.json(photo_result)
                 else:
                     st.error("❌ Could not extract data. Post might be completely private.")
             
             elif isinstance(result, dict):
                 st.success("✅ Video/Reel Data Successfully Extracted!")
+                st.divider() # Sleek visual line
                 
-                # 👈 Yahan 3 ki jagah 4 columns kar diye
                 col1, col2, col3, col4 = st.columns(4)
                 col1.metric("Platform", result["Platform"])
                 col2.metric("Views", result["Views"])
